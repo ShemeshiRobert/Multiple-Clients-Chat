@@ -19,7 +19,7 @@ public class ClientHandler implements Runnable {
             this.output = new PrintWriter(socket.getOutputStream(), true);
             this.clientUsername = input.readLine();
             clients.add(this);
-            broadcastMessage("SERVER" + clientUsername + "has entered the chat.");
+            broadcastMessage("SERVER: " + clientUsername + " has entered the chat.");
         }catch(IOException e){
             closeEverything(socket,input,output);
             e.printStackTrace();
@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable {
         String message;
         while(socket.isConnected()){
             try{
-                message = input.readline();
+                message = input.readLine();
                 broadcastMessage(message);
             }catch(IOException e){
                 closeEverything(socket,input,output);
@@ -41,20 +41,16 @@ public class ClientHandler implements Runnable {
 
     public void broadcastMessage(String message){
         for (ClientHandler client : clients) {
-            try{
-                if(!client.clientUsername.equals(clientUsername)){
-                    client.output.println(message);
-                    client.output.flush();
-                }
-            }catch(IOException){
-                closeEverything(socket,input,output);
+            if(!client.clientUsername.equals(clientUsername)){
+                client.output.println(message);
+                client.output.flush();
             }
         }
     }
 
-    public void removeClientHandler(){
+    public synchronized void removeClientHandler(){
         clients.remove(this);
-        broadcastMessage("SEVER: " + clientUsername + "has left the chat.");
+        broadcastMessage("SERVER: " + clientUsername + "has left the chat.");
     }
 
     public void closeEverything(Socket socktet, BufferedReader input, PrintWriter output){
